@@ -124,7 +124,7 @@ function getBrief() {
         client.hmset(tcrJson.TCR, fdArr, redis.print);
 
 	// TCR count per PE
-	client.hincrby("PE", tcrJson.PE, 1, redis.print);
+	client.sadd("PE", tcrJson.PE, redis.print);
 	var desc = [ tcrJson.KBM
 	, tcrJson.STAGE
 	, tcrJson.PKG    || '[PKG]'
@@ -134,7 +134,7 @@ function getBrief() {
 
 
 	// TCR count per TE
-	client.hincrby("TE", tcrJson.TE||'XMAN', 1, redis.print);
+	client.sadd("TE", tcrJson.TE||'XMAN', redis.print);
 	desc = [ tcrJson.STAGE
 	, tcrJson.START  || '[START]'
 	, tcrJson.END    || '[END]'
