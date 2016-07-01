@@ -6,6 +6,7 @@ var phantom = require('phantom');
 //var url = 'http://dynamics.sandisk.com/Dynamics/main.aspx?etc=10061&extraqs=&histKey=100423246&id=%7bE54F7D2B-CA39-E611-80D8-005056AB4520%7d&newWindow=true&pagetype=entityrecord#908269779'
 //var url = 'http://dynamics.sandisk.com/Dynamics/main.aspx?etc=10061&extraqs=&histKey=780644153&id=%7bF4BEDABD-FEEF-E511-80D4-005056AB451F%7d&newWindow=true&pagetype=entityrecord#933388082'
 //var url = 'http://dynamics.sandisk.com/Dynamics/main.aspx?etc=10061&extraqs=&histKey=723535979&id=%7b20995D58-F7EF-E511-80D4-005056AB451F%7d&newWindow=true&pagetype=entityrecord#923640052'
+var url = ''
 var sitepage = null;
 var phInstance = null;
 
@@ -28,7 +29,7 @@ client.blpop('outQueue', 5, function(err, value) {
 
     console.log(value[1])
 
-    var url = value[1].trim()
+    url = value[1].trim()
     phantom.create()
         .then(instance => {
             phInstance = instance;
@@ -112,6 +113,7 @@ function getBrief() {
         sitepage.close()
         phInstance.exit()
 
+	tcrJson.URL = url
         console.log(JSON.stringify(tcrJson, null, 2))
 
 	var fdArr = []
@@ -120,6 +122,28 @@ function getBrief() {
 		fdArr.push( tcrJson[key] )
         }
         client.hmset(tcrJson.TCR, fdArr, redis.print);
+
+	// TCR count per PE
+	client.hincrby("PE", tcrJson.PE, 1, redis.print);
+	var desc = [ tcrJson.KBM
+	, tcrJson.STAGE
+	, tcrJson.PKG    || '[PKG]'
+	, tcrJson.TITLE
+	, tcrJson.TE     || 'XMAN' ]
+	client.hset(tcrJson.PE, tcrJson.TCR, desc.join(' | '), redis.print);
+
+
+	// TCR count per TE
+	client.hincrby("TE", tcrJson.TE||'XMAN', 1, redis.print);
+	desc = [ tcrJson.STAGE
+	, tcrJson.START  || '[START]'
+	, tcrJson.END    || '[END]'
+	, tcrJson.COMMIT || '[COMMIT]'
+	, tcrJson.PKG    || '[PKG]'
+	, tcrJson.TITLE
+	, tcrJson.PE ]
+	client.hset(tcrJson.TE||'XMAN', tcrJson.TCR, desc.join(' | '), redis.print);
+
         client.quit();
     })
 
