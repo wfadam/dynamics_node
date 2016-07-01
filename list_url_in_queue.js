@@ -32,16 +32,16 @@ phantom.create()
             phInstance.exit()
         }
 
-        sitepage.render('w.png');
+        //sitepage.render('w.png');
 
         setTimeout(function() {
 
             faceOff()
-            sitepage.render('w2.png');
+            //sitepage.render('w2.png');
 
             dropDown()
             setTimeout(function() {
-                sitepage.render('w3.png');
+                //sitepage.render('w3.png');
 
                 openTCRRequest()
                 setTimeout(function() {
@@ -49,7 +49,7 @@ phantom.create()
                     //searchTCR( '*10861' )
                     setTimeout(function() {
 
-                        sitepage.render('w4.png');
+                        //sitepage.render('w4.png');
 
                         getQueue(false)
 
