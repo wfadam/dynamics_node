@@ -42,6 +42,7 @@ client.blpop('outQueue', 5, function(err, value) {
         //    sitepage.render('w.png');
         //})
         .then(status => {
+            console.log(status);
             getBrief()
         })
         .catch(error => {
@@ -70,38 +71,36 @@ function enablePageConsole(page) {
 function getBrief() {
     sitepage.evaluate(function() {
 
-        var valueOf = function(id) {
-            var doc = document.getElementById('contentIFrame0').contentDocument
-            var ele = doc.getElementById(id)
-            if (ele) {
-                if (ele === 'zsd_productdescription') {
-                    return ele.title.trim()
-                } else {
-                    return ele.innerText.trim()
-                }
+        var ifrDoc = $('#contentIFrame0').contents()
+
+        function valueOf(id) {
+            if (id === 'createdby' || id === 'zsd_assignedte_d') {
+                return document.getElementById('contentIFrame0').contentDocument.getElementById(id).innerText.trim()
+            } else {
+                return ifrDoc.find('#' + id).text().trim()
             }
-            return ''
         }
+
 
         var fmt = function(name, val) {
             return name + '\t:\t' + val
         }
 
         var tcr = {}
-        tcr.TE      = valueOf('zsd_assignedte_d')
-        tcr.STAGE   = valueOf('zsd_stage')
-        tcr.START   = valueOf('zsd_testartdate')
-        tcr.END     = valueOf('zsd_teenddate')
-        tcr.COMMIT  = valueOf('header_process_zsd_commitdate')
-        tcr.TITLE   = valueOf('zsd_tcrrequestname')
-        tcr.PKG     = valueOf('zsd_productdescription')
-        tcr.AGILE   = valueOf('zsd_agileproductline')
-        tcr.KBM     = valueOf('zsd_category')
-        tcr.PROD    = valueOf('zsd_releasetype')
-        tcr.FLOW    = valueOf('zsd_testtimetestflow')
-        tcr.TCR     = valueOf('header_zsd_tcrnumber')
-        tcr.PROG    = valueOf('header_zsd_testprogamname')
-        tcr.PE      = valueOf('createdby')
+        tcr.TE = valueOf('zsd_assignedte_d')
+        tcr.STAGE = valueOf('zsd_stage')
+        tcr.START = valueOf('zsd_testartdate')
+        tcr.END = valueOf('zsd_teenddate')
+        tcr.COMMIT = valueOf('header_process_zsd_commitdate')
+        tcr.TITLE = valueOf('zsd_tcrrequestname')
+        tcr.PKG = valueOf('zsd_productdescription')
+        tcr.AGILE = valueOf('zsd_agileproductline')
+        tcr.KBM = valueOf('zsd_category')
+        tcr.PROD = valueOf('zsd_releasetype')
+        tcr.FLOW = valueOf('zsd_testtimetestflow')
+        tcr.TCR = valueOf('header_zsd_tcrnumber')
+        tcr.PROG = valueOf('header_zsd_testprogamname')
+        tcr.PE = valueOf('createdby')
         tcr.OUT_PRO = valueOf('header_process_zsd_executablelink')
         tcr.REQUEST = valueOf('zsd_detailscomments')
         tcr.COMMENT = valueOf('zsd_tecomments')
