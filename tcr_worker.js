@@ -4,6 +4,7 @@ var phantom = require('phantom');
 var url = ''
 var sitepage = null;
 var phInstance = null;
+var math = require('mathjs')
 
 
 var redis = require("redis"),
@@ -74,7 +75,7 @@ function getBrief() {
         var ifrDoc = $('#contentIFrame0').contents()
 
         function valueOf(id) {
-            if (id === 'createdby' || id === 'zsd_assignedte_d') {
+            if (id === 'createdby' || id === 'zsd_assignedte_d' || id === 'zsd_agileproductline') {
                 return document.getElementById('contentIFrame0').contentDocument.getElementById(id).innerText.trim()
             } else {
                 return ifrDoc.find('#' + id).text().trim()
@@ -129,7 +130,8 @@ function getBrief() {
 
         // TCR count per TE
         client.sadd("TE", tcrJson.TE || 'XMAN', redis.print);
-        desc = [tcrJson.STAGE, tcrJson.START || '[START]', tcrJson.END || '[END]', tcrJson.COMMIT || '[COMMIT]', tcrJson.PKG || '[PKG]', tcrJson.TITLE, tcrJson.PE]
+        //desc = [tcrJson.KBM, tcrJson.STAGE, tcrJson.START || '[START]', tcrJson.END || '[END]', tcrJson.COMMIT || '[COMMIT]', tcrJson.PKG || '[PKG]', tcrJson.TITLE, tcrJson.PE]
+        desc = [tcrJson.KBM, tcrJson.STAGE, tcrJson.START || '[START]', tcrJson.END || '[END]', tcrJson.COMMIT || '[COMMIT]', tcrJson.PKG.trim() || '[PKG]', tcrJson.TITLE, tcrJson.PE, tcrJson.OUT_PRO]
         client.hset(tcrJson.TE || 'XMAN', tcrJson.TCR, desc.join(' | '), redis.print);
 
         client.quit();
