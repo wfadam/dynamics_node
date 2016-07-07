@@ -75,12 +75,18 @@ function getBrief() {
         var ifrDoc = $('#contentIFrame0').contents()
 
         function valueOf(id) {
-            if (id === 'createdby' || id === 'zsd_assignedte_d' || id === 'zsd_agileproductline') {
-                return document.getElementById('contentIFrame0').contentDocument.getElementById(id).innerText.trim()
-            } else {
-                return ifrDoc.find('#' + id).text().trim()
-            }
+		switch( id ) {
+		case 'createdby':
+		case 'zsd_assignedte_d':
+		case 'zsd_agileproductline':
+		case 'zsd_stagestatus':
+		case 'zsd_pdtproject':
+			return document.getElementById('contentIFrame0').contentDocument.getElementById(id).innerText.trim()
+		default:
+			return ifrDoc.find('#' + id).text().trim()
+		}
         }
+
 
 
         var fmt = function(name, val) {
@@ -88,23 +94,26 @@ function getBrief() {
         }
 
         var tcr = {}
-        tcr.TE = valueOf('zsd_assignedte_d')
-        tcr.STAGE = valueOf('zsd_stage')
-        tcr.START = valueOf('zsd_testartdate')
-        tcr.END = valueOf('zsd_teenddate')
-        tcr.COMMIT = valueOf('header_process_zsd_commitdate')
-        tcr.TITLE = valueOf('zsd_tcrrequestname')
-        tcr.PKG = valueOf('zsd_productdescription')
-        tcr.AGILE = valueOf('zsd_agileproductline')
-        tcr.KBM = valueOf('zsd_category')
-        tcr.PROD = valueOf('zsd_releasetype')
-        tcr.FLOW = valueOf('zsd_testtimetestflow')
-        tcr.TCR = valueOf('header_zsd_tcrnumber')
-        tcr.PROG = valueOf('header_zsd_testprogamname')
-        tcr.PE = valueOf('createdby')
+        tcr.TE      = valueOf('zsd_assignedte_d')
+        tcr.STAGE   = valueOf('zsd_stage')
+        tcr.START   = valueOf('zsd_testartdate')
+        tcr.END     = valueOf('zsd_teenddate')
+        tcr.COMMIT  = valueOf('header_process_zsd_commitdate')
+        tcr.TITLE   = valueOf('zsd_tcrrequestname')
+        tcr.PKG     = valueOf('zsd_productdescription')
+        tcr.AGILE   = valueOf('zsd_agileproductline')
+        tcr.KBM     = valueOf('zsd_category')
+        tcr.PROD    = valueOf('zsd_releasetype')
+        tcr.FLOW    = valueOf('zsd_testtimetestflow')
+        tcr.TCR     = valueOf('header_zsd_tcrnumber')
+        tcr.PROG    = valueOf('header_zsd_testprogamname')
+        tcr.PE      = valueOf('createdby')
         tcr.OUT_PRO = valueOf('header_process_zsd_executablelink')
         tcr.REQUEST = valueOf('zsd_detailscomments')
         tcr.COMMENT = valueOf('zsd_tecomments')
+        tcr.STATUS  = valueOf('zsd_stagestatus')
+        tcr.PDT     = valueOf('zsd_pdtproject')
+        tcr.PDT     = tcr.PDT.substring(0, tcr.PDT.length/2) // ugly but can reduce the duplicates
 
         return tcr
     }).then(function(tcrJson) {
@@ -125,13 +134,12 @@ function getBrief() {
         // TCR count per PE
         client.sadd("PE", tcrJson.PE, redis.print);
         var desc = [tcrJson.KBM, tcrJson.STAGE, tcrJson.PKG || '[PKG]', tcrJson.TITLE, tcrJson.TE || 'XMAN']
-        client.hset(tcrJson.PE, tcrJson.TCR, desc.join(' | '), redis.print);
+	client.hset(tcrJson.PE, tcrJson.TCR, desc.join(' | '), redis.print);
 
 
         // TCR count per TE
         client.sadd("TE", tcrJson.TE || 'XMAN', redis.print);
-        //desc = [tcrJson.KBM, tcrJson.STAGE, tcrJson.START || '[START]', tcrJson.END || '[END]', tcrJson.COMMIT || '[COMMIT]', tcrJson.PKG || '[PKG]', tcrJson.TITLE, tcrJson.PE]
-        desc = [tcrJson.KBM, tcrJson.STAGE, tcrJson.START || '[START]', tcrJson.END || '[END]', tcrJson.COMMIT || '[COMMIT]', tcrJson.PKG.trim() || '[PKG]', tcrJson.TITLE, tcrJson.PE, tcrJson.OUT_PRO]
+        desc = [tcrJson.KBM, tcrJson.STATUS, tcrJson.STAGE, tcrJson.START || '[START]', tcrJson.END || '[END]', tcrJson.COMMIT || '[COMMIT]', tcrJson.PKG.trim() || '[PKG]', tcrJson.TITLE, tcrJson.PE, tcrJson.OUT_PRO]
         client.hset(tcrJson.TE || 'XMAN', tcrJson.TCR, desc.join(' | '), redis.print);
 
         client.quit();
