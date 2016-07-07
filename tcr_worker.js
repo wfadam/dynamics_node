@@ -131,16 +131,20 @@ function getBrief() {
         }
         client.hmset(tcrJson.TCR, fdArr, redis.print);
 
-        // TCR count per PE
+        // TCR info per PE
         client.sadd("PE", tcrJson.PE, redis.print);
-        var desc = [tcrJson.KBM, tcrJson.STAGE, tcrJson.PKG || '[PKG]', tcrJson.TITLE, tcrJson.TE || 'XMAN']
+        var desc = [tcrJson.KBM, tcrJson.STATUS, tcrJson.STAGE, tcrJson.AGILE.trim()||'[AGILE]', tcrJson.PDT.trim()||'[PDT]', tcrJson.PKG.trim()||'[PKG]', tcrJson.TITLE, tcrJson.TE || 'XMAN']
 	client.hset(tcrJson.PE, tcrJson.TCR, desc.join(' | '), redis.print);
 
 
-        // TCR count per TE
+        // TCR info per TE
         client.sadd("TE", tcrJson.TE || 'XMAN', redis.print);
         desc = [tcrJson.KBM, tcrJson.STATUS, tcrJson.STAGE, tcrJson.START || '[START]', tcrJson.END || '[END]', tcrJson.COMMIT || '[COMMIT]', tcrJson.PKG.trim() || '[PKG]', tcrJson.TITLE, tcrJson.PE, tcrJson.OUT_PRO]
         client.hset(tcrJson.TE || 'XMAN', tcrJson.TCR, desc.join(' | '), redis.print);
+
+	// Agile/PDT info
+	client.sadd( 'AGILE', tcrJson.AGILE.trim() )
+	client.sadd( 'PDT', tcrJson.PDT.trim() )
 
         client.quit();
     })
