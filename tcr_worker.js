@@ -6,6 +6,7 @@ var sitepage = null;
 var phInstance = null;
 var math = require('mathjs')
 
+var modT
 
 var redis = require("redis"),
     client = redis.createClient(6379, 'mtte');
@@ -23,9 +24,16 @@ client.blpop('outQueue', 5, function(err, value) {
         return;
     }
 
-    console.log(value[1])
+    var fdArr = value[1].split(',')
+        modT  = fdArr[1]
+    var qName = fdArr[2]
+    var otype = fdArr[3]
+    var oid   = fdArr[4]
 
-    url = value[1].trim()
+    url = 'http://dynamics.sandisk.com/Dynamics/main.aspx?etc=' + encodeURIComponent(otype) +
+        '&id=' + encodeURIComponent(oid) +
+        '&newWindow=true&pagetype=entityrecord'
+
     phantom.create()
         .then(instance => {
             phInstance = instance;
@@ -44,7 +52,7 @@ client.blpop('outQueue', 5, function(err, value) {
         //})
         .then(status => {
             console.log(status);
-            getBrief()
+            getBrief(qName)
         })
         .catch(error => {
             console.log(error);
@@ -52,7 +60,7 @@ client.blpop('outQueue', 5, function(err, value) {
         });
 })
 
-console.log("waiting new jobs")
+//console.log("waiting new jobs")
 
 
 function faceOff() {
@@ -69,8 +77,8 @@ function enablePageConsole(page) {
     })
 }
 
-function getBrief() {
-    sitepage.evaluate(function() {
+function getBrief(qNm) {
+    sitepage.evaluate(function(q) {
 
         var ifrDoc = $('#contentIFrame0').contents()
 
@@ -94,6 +102,7 @@ function getBrief() {
         }
 
         var tcr = {}
+        tcr.QUEUE   = q
         tcr.TE      = valueOf('zsd_assignedte_d')
         tcr.STAGE   = valueOf('zsd_stage')
         tcr.START   = valueOf('zsd_testartdate')
@@ -116,7 +125,7 @@ function getBrief() {
         tcr.PDT     = tcr.PDT.substring(0, tcr.PDT.length/2) // ugly but can reduce the duplicates
 
         return tcr
-    }).then(function(tcrJson) {
+    }, qNm).then(function(tcrJson) {
 
         sitepage.close()
         phInstance.exit()
@@ -135,12 +144,19 @@ function getBrief() {
         client.sadd("PE", tcrJson.PE, redis.print);
         var desc = [tcrJson.KBM, tcrJson.STATUS, tcrJson.STAGE, tcrJson.AGILE.trim()||'[AGILE]', tcrJson.PDT.trim()||'[PDT]', tcrJson.PKG.trim()||'[PKG]', tcrJson.TITLE, tcrJson.TE || 'XMAN']
 	client.hset(tcrJson.PE, tcrJson.TCR, desc.join(' | '), redis.print);
-
+	client.hset(tcrJson.QUEUE, tcrJson.TCR, desc.join(' | '), redis.print);
 
         // TCR info per TE
         client.sadd("TE", tcrJson.TE || 'XMAN', redis.print);
         desc = [tcrJson.KBM, tcrJson.STATUS, tcrJson.STAGE, tcrJson.START || '[START]', tcrJson.END || '[END]', tcrJson.COMMIT || '[COMMIT]', tcrJson.PKG.trim() || '[PKG]', tcrJson.TITLE, tcrJson.PE, tcrJson.OUT_PRO]
-        client.hset(tcrJson.TE || 'XMAN', tcrJson.TCR, desc.join(' | '), redis.print);
+        client.hset(tcrJson.TE , tcrJson.TCR, desc.join(' | '), redis.print);
+        client.hset(tcrJson.QUEUE , tcrJson.TCR, desc.join(' | '), redis.print);
+
+        // save Queue names
+	client.sadd( "TCR_QUEUE", tcrJson.QUEUE )
+
+        // save TCR mod time
+	client.hset( "TCR_MODT", tcrJson.TCR, modT )
 
 	// Agile/PDT info
 	client.sadd( 'AGILE', tcrJson.AGILE.trim() )

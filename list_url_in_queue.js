@@ -24,7 +24,7 @@ phantom.create()
         return page.open(url);
     })
     .then(status => {
-        console.log(status);
+        //console.log(status);
 
         if (status !== 'success') {
             console.log('Failed to load sitepage')
@@ -69,21 +69,21 @@ function faceOff() {
     sitepage.evaluate(function() {
         $('#InlineDialog_Background').hide()
         $('#InlineDialog').hide()
-        console.log('Say goodbye to the lady')
+        //console.log('Say goodbye to the lady')
     })
 }
 
 function dropDown() {
     sitepage.evaluate(function() {
         $('#TabTEST').click()
-        console.log('Drop down the list')
+        //console.log('Drop down the list')
     })
 }
 
 function openTCRRequest() {
     sitepage.evaluate(function() {
         $('#zsd_tcrrequest').click()
-        console.log('Click the TCR REQUEST')
+        //console.log('Click the TCR REQUEST')
     })
 }
 
@@ -95,20 +95,22 @@ function getQueue(withinQueue) {
     }
     sitepage.evaluate(function(wiQ) {
             var tcrArr = []
-            var tcrRows = wiQ ?
-                $('#contentIFrame0').contents().find("tr.ms-crm-List-Row[oid][otype]") :
-                $('#contentIFrame1').contents().find("tr.ms-crm-List-Row[oid][otype]")
+            var tcrRows = wiQ
+			? $('#contentIFrame0').contents().find("tr.ms-crm-List-Row[oid][otype]")
+			: $('#contentIFrame1').contents().find("tr.ms-crm-List-Row[oid][otype]")
 
             console.log('Found ' + tcrRows.length + (wiQ ? ' in the Queue' : ' in the 1st page of TCR Request'))
             for (var i = 0; i < tcrRows.length; i++) {
                 var otype = tcrRows[i].attributes['otype'].value
                 var oid = tcrRows[i].attributes['oid'].value
-                var uri = 'http://dynamics.sandisk.com/Dynamics/main.aspx?etc=' + encodeURIComponent(otype) +
-                    '&id=' + encodeURIComponent(oid) +
-                    '&newWindow=true&pagetype=entityrecord'
-                tcrArr.push(uri)
+
+		var fields = jQuery(tcrRows[i]).find('td')
+		var modT = fields[1].textContent
+		var tcrN = fields[2].textContent
+		var qName = fields[5].textContent
+		tcrArr.push( [ tcrN, modT, qName, otype, oid ].join(',') )
+
             }
-            //console.log( tcrArr )
 
             return tcrArr
         }, withinQueue)
@@ -117,13 +119,10 @@ function getQueue(withinQueue) {
             sitepage.close()
             phInstance.exit()
 
-            //console.log(JSON.stringify(tcrJson, null, 2))
-            console.log(tcrArr)
+            //console.log(tcrArr)
 
             if ( tcrArr.length > 0 ) {
-                client.rpush('outQueue', tcrArr, redis.print);
-            } else {
-                console.log( 'Nothing found in TCR Queue')
+                client.rpush('inQueue', tcrArr, redis.print);
             }
             client.quit();
         })
