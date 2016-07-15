@@ -15,16 +15,15 @@ client.on("error", function(err) {
     console.log("Error " + err);
 });
 
-client.blpop('outQueue', 5, function(err, value) {
+client.spop('outQueue', function(err, value) {
 
     if (value === null) {
         console.log('time out')
-            //throw new Error( 'Time out' )
         client.quit()
         return;
     }
 
-    var fdArr = value[1].split(',')
+    var fdArr = value.split(',')
         modT  = fdArr[1]
     var qName = fdArr[2]
     var otype = fdArr[3]

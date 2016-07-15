@@ -6,7 +6,7 @@ process.on('SIGINT', () => {
 });
 
 const MAX_WORKERS = 10
-const UPDATE_PERIOD = 600*1000
+const UPDATE_PERIOD = 300*1000
 const DO_JOBS_PERIOD = 3*1000
 
 var ONJOB_WORKERS = 0
@@ -44,18 +44,18 @@ setInterval( function(){
 						act = function(e2,v2){ }
 					} else {
 						console.log( 'Sending ' + tcrN + ' for update' )
-						act = function(e2,v2){client.rpush( 'outQueue', v2, function(e3,v3){ }) }
+						act = function(e2,v2){client.sadd( 'outQueue', v2, function(e3,v3){ }) }
 					}
 					client.lpop( 'inQueue', act)
 				})
 			}
 		}
 	})
-}, DO_JOBS_PERIOD-1000 )
+}, DO_JOBS_PERIOD )
 
 // process the out queue
 setInterval( function(){
-	client.llen('outQueue', function(err, value) {
+	client.scard('outQueue', function(err, value) {
 		qLen = parseInt( value )
 		if ( ONJOB_WORKERS > 0 ) {
 			console.log( 'Queued jobs : ' + qLen + ' , Ongoing jobs : ' + ONJOB_WORKERS )
