@@ -143,7 +143,7 @@ function getBrief(qNm) {
         client.sadd("PE", tcrJson.PE, redis.print);
         var desc = [tcrJson.KBM, tcrJson.STATUS, tcrJson.STAGE, tcrJson.AGILE.trim()||'[AGILE]', tcrJson.PDT.trim()||'[PDT]', tcrJson.PKG.trim()||'[PKG]', tcrJson.TITLE, tcrJson.TE || 'XMAN']
 	client.hset(tcrJson.PE, tcrJson.TCR, desc.join(' | '), redis.print);
-	client.hset(tcrJson.QUEUE, tcrJson.TCR, desc.join(' | '), redis.print);
+	//client.hset(tcrJson.QUEUE, tcrJson.TCR, desc.join(' | '), redis.print);
 
         // TCR info per TE
         client.sadd("TE", tcrJson.TE || 'XMAN', redis.print);
