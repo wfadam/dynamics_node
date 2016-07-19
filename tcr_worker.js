@@ -144,11 +144,6 @@ function getBrief(qNm) {
         var desc = [tcrJson.KBM, tcrJson.STATUS, tcrJson.STAGE, tcrJson.AGILE.trim()||'[AGILE]', tcrJson.PDT.trim()||'[PDT]', tcrJson.PKG.trim()||'[PKG]', tcrJson.TITLE, tcrJson.TE || 'XMAN']
 	client.hset(tcrJson.PE, tcrJson.TCR, desc.join(' | '), redis.print);
 	client.hset(tcrJson.QUEUE, tcrJson.TCR, desc.join(' | '), redis.print);
-	if ( tcrJson.PE && (tcrJson.QUEUE !== '<'+tcrJson.PE+'>') ) {
-		console.log( 'Removed ' + tcrJson.TCR + ' from ' + '<'+tcrJson.TE+'>' )
-		client.hdel( '<'+tcrJson.TE+'>', tcrJson.TCR, function(e2,v2){})
-	}
-
 
         // TCR info per TE
         client.sadd("TE", tcrJson.TE || 'XMAN', redis.print);
