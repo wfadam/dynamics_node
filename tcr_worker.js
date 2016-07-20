@@ -89,6 +89,8 @@ function getBrief(qNm) {
 		case 'zsd_stagestatus':
 		case 'zsd_pdtproject':
 			return document.getElementById('contentIFrame0').contentDocument.getElementById(id).innerText.trim()
+		case 'zsd_detailscomments':
+			return ifrDoc.find('#'+id+' :first span').html()
 		default:
 			return ifrDoc.find('#' + id).text().trim()
 		}
