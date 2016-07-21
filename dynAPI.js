@@ -9,6 +9,7 @@ client.on("error", function(err) {
 });
 
 app.get('/TCR/:tcr/:fd', function (req, res) {
+	saveIP(req)
 	console.log( req.url )
 
 	var key = req.params.tcr.toUpperCase()
@@ -24,6 +25,7 @@ app.get('/TCR/:tcr/:fd', function (req, res) {
 });
 
 app.get('/TCR/:tcr', function (req, res) {
+	saveIP(req)
 	var key = req.params.tcr
 	client.hgetall( key, function(err, value){
 		if ( handleErr(err, value) ) {
@@ -36,10 +38,10 @@ app.get('/TCR/:tcr', function (req, res) {
 			switch( fd ) {
 			case 'QUEUE':
 				var qName = value[fd].startsWith('<') ? value[fd].substr(1, value[fd].length-2) : value[fd]
-				text = '<a href="http://mtte:3000/queue/' + qName + '">'+value[fd].replace('<', '&lt;')+'</a>'
+				text = '<a href="http://mtte:3000/queue/' + escape(qName) + '">'+value[fd].replace('<', '&lt;')+'</a>'
 				break
 			case 'PE':
-				text = '<a href="http://mtte:3000/queue/' + value[fd] + '">'+value[fd]+'</a>'
+				text = '<a href="http://mtte:3000/queue/' + escape(value[fd]) + '">'+value[fd]+'</a>'
 				break
 			default:
 				text = value[fd]
@@ -52,6 +54,7 @@ app.get('/TCR/:tcr', function (req, res) {
 });
 
 app.get('/HISTORY/:te', function (req, res) {
+	saveIP(req)
 	var teArr = req.params.te.split(' ')
 	for ( var i in teArr ) {
 		teArr[i] = teArr[i].charAt(0).toUpperCase() + teArr[i].substr(1)
@@ -70,8 +73,43 @@ app.get('/HISTORY/:te', function (req, res) {
 	})
 });
 
+app.get('/TE', function (req, res) {
+	saveIP(req)
+	var key = 'TE'
+	client.smembers( key, function(err, value){
+		if ( handleErr(err, value) ) {
+			res.send( 'Sorry, no reuslt' )
+			return
+		}
+
+		var msg = []
+		for ( var fd in value ) {
+			msg.push( [fd, value[fd]].join(' : ') )
+		}
+		res.send( msg.join('<br>') )
+	})
+});
+
+app.get('/PE', function (req, res) {
+	saveIP(req)
+	var key = 'PE'
+	client.smembers( key, function(err, value){
+		if ( handleErr(err, value) ) {
+			res.send( 'Sorry, no reuslt' )
+			return
+		}
+
+		var msg = []
+		for ( var fd in value ) {
+			msg.push( [fd, value[fd]].join(' : ') )
+		}
+		res.send( msg.join('<br>') )
+	})
+});
+
 
 app.get('/QUEUE/:te', function (req, res) {
+	saveIP(req)
 	var teArr = req.params.te.split(' ')
 	for ( var i in teArr ) {
 		teArr[i] = teArr[i].charAt(0).toUpperCase() + teArr[i].substr(1)
@@ -93,6 +131,7 @@ app.get('/QUEUE/:te', function (req, res) {
 });
 
 app.get('/WILD', function (req, res) {
+	saveIP(req)
 
 	hgetall( "Submitted TCRs ex2", res )
 	hgetall( "Submitted TCRs ex3", res )
@@ -112,7 +151,9 @@ function hgetall( key, res ) {
 		for ( var fd in value ) {
 			msg.push( [value[fd], fd].join(' ') )
 		}
+		res.write( key+'<br>' )
 		res.write( msg.join('<br>') )
+		res.write( '<br>' )
 	})
 }
 
@@ -132,12 +173,13 @@ function handleErr(err,value){
 
 
 app.get( '/QUEUE', function (req, res) {
+	saveIP(req)
 	client.keys('<*', function(err, value){
 		res.append('Link', ['<http://localhost/>', '<http://localhost:3000/>']);
 		var msg = []
 		for ( var i in value ) {
 			var teName = value[i].substr(1,value[i].length-2)
-			var lnk = '<a href="http://mtte:3000/queue/' + teName + '">'+teName+'</a>'
+			var lnk = '<a href="http://mtte:3000/queue/' + escape(teName) + '">'+teName+'</a>'
 			msg.push( [parseInt(i)+1, lnk].join(' : ') )
 		}
 		res.send( msg.join('<br>') )
@@ -145,6 +187,10 @@ app.get( '/QUEUE', function (req, res) {
 });
 
 
+function saveIP(req) {
+	client.hincrby('IP_CNTR', req.ip, 1, function(){})
+	client.hset('ACCESS_DATE', req.ip, (new Date()).toString(), function(){})
+}
 
 app.listen(3000, function () {
   console.log('Example app listening on port 3000!');
