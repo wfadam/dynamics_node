@@ -167,6 +167,17 @@ function getBrief(qNm) {
 	client.sadd( 'AGILE', tcrJson.AGILE.trim() )
 	client.sadd( 'PDT', tcrJson.PDT.trim() )
 
+
+	switch(tcrJson.STAGE){
+		case 'Development In Progress':
+		case 'Program Checkout':
+		case 'Production Checkout':
+			client.sadd( tcrJson.STAGE, tcrJson.TCR )
+			break
+		default:
+			break
+	}
+
         client.quit();
     })
 
