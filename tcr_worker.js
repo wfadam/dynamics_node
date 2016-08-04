@@ -1,14 +1,11 @@
 "use strict";
 
-var phantom = require('phantom');
-var url = ''
-var sitepage = null;
-var phInstance = null;
-var math = require('mathjs')
-
-var modT
-
-var redis = require("redis"),
+var phantom = require('phantom'),
+    url = '',
+    sitepage = null,
+    phInstance = null,
+    math = require('mathjs'),
+    modT, redis = require("redis"),
     client = redis.createClient(6379, 'mtte');
 
 client.on("error", function(err) {
@@ -24,10 +21,10 @@ client.spop('outQueue', function(err, value) {
     }
 
     var fdArr = value.split(',')
-        modT  = fdArr[1]
+    modT = fdArr[1]
     var qName = fdArr[2]
     var otype = fdArr[3]
-    var oid   = fdArr[4]
+    var oid = fdArr[4]
 
     url = 'http://dynamics.sandisk.com/Dynamics/main.aspx?etc=' + encodeURIComponent(otype) +
         '&id=' + encodeURIComponent(oid) +
@@ -43,12 +40,6 @@ client.spop('outQueue', function(err, value) {
             enablePageConsole(page)
             return page.open(url);
         })
-        //.then(status => {
-        //    console.log(status);
-        //
-        //    faceOff()
-        //    sitepage.render('w.png');
-        //})
         .then(status => {
             console.log(status);
             getBrief(qName)
@@ -59,16 +50,6 @@ client.spop('outQueue', function(err, value) {
         });
 })
 
-//console.log("waiting new jobs")
-
-
-function faceOff() {
-    sitepage.evaluate(function() {
-        $('#InlineDialog_Background').hide()
-        $('#InlineDialog').hide()
-        console.log('Say goodbye to the lady')
-    })
-}
 
 function enablePageConsole(page) {
     page.on('onConsoleMessage', function(msg) {
@@ -78,52 +59,59 @@ function enablePageConsole(page) {
 
 function getBrief(qNm) {
     sitepage.evaluate(function(q) {
-
-        var ifrDoc = $('#contentIFrame0').contents()
+        var doc = $('#contentIFrame0').contents();
 
         function valueOf(id) {
-		switch( id ) {
-		case 'createdby':
-		case 'zsd_assignedte_d':
-		case 'zsd_agileproductline':
-		case 'zsd_stagestatus':
-		case 'zsd_pdtproject':
-			return document.getElementById('contentIFrame0').contentDocument.getElementById(id).innerText.trim()
-		case 'zsd_detailscomments':
-			return ifrDoc.find('#'+id+' :first span').html()
-		default:
-			return ifrDoc.find('#' + id).text().trim()
-		}
+            switch (id) {
+                case '#zsd_detailscomments span':
+                    return doc.find(id).html() || ''
+                default:
+                    return doc.find(id).text() || ''
+            }
         }
-
-
-
-        var fmt = function(name, val) {
-            return name + '\t:\t' + val
-        }
-
         var tcr = {}
-        tcr.QUEUE   = q
-        tcr.TE      = valueOf('zsd_assignedte_d')
-        tcr.STAGE   = valueOf('zsd_stage')
-        tcr.START   = valueOf('zsd_testartdate')
-        tcr.END     = valueOf('zsd_teenddate')
-        tcr.COMMIT  = valueOf('header_process_zsd_commitdate')
-        tcr.TITLE   = valueOf('zsd_tcrrequestname')
-        tcr.PKG     = valueOf('zsd_productdescription')
-        tcr.AGILE   = valueOf('zsd_agileproductline')
-        tcr.KBM     = valueOf('zsd_category')
-        tcr.PROD    = valueOf('zsd_releasetype')
-        tcr.FLOW    = valueOf('zsd_testtimetestflow')
-        tcr.TCR     = valueOf('header_zsd_tcrnumber')
-        tcr.PROG    = valueOf('header_zsd_testprogamname')
-        tcr.PE      = valueOf('createdby')
-        tcr.OUT_PRO = valueOf('header_process_zsd_executablelink')
-        tcr.REQUEST = valueOf('zsd_detailscomments')
-        tcr.COMMENT = valueOf('zsd_tecomments')
-        tcr.STATUS  = valueOf('zsd_stagestatus')
-        tcr.PDT     = valueOf('zsd_pdtproject')
-        tcr.PDT     = tcr.PDT.substring(0, tcr.PDT.length/2) // ugly but can reduce the duplicates
+        tcr.QUEUE      = q
+        tcr.PRODUCT    = ''
+        tcr.NUM_OF_DIE = ''
+        tcr.TESTER     = ''
+        tcr.PDT        = ''
+        tcr.PROGRAM    = valueOf('#zsd_testprogamname span')
+        tcr.MEMORY     = valueOf('#zsd_memoryconfiguration span.ms-crm-Lookup-Item-Read')
+        tcr.AGILE      = valueOf('#zsd_agileproductline span.ms-crm-Lookup-Item-Read')
+        tcr.WAFER      = valueOf('#MemoryConfiguration_MemoryConfiguration_zsd_memoryconfiguration_zsd_diepartnumber span.ms-crm-Lookup-Item-Read')
+        tcr.COMMIT     = valueOf('#zsd_forecastdate span')
+        tcr.REQUEST    = valueOf('#zsd_detailscomments span')
+        tcr.PE         = valueOf('#createdby span.ms-crm-Lookup-Item-Read')
+        tcr.TE         = valueOf('#zsd_assignedte span.ms-crm-Lookup-Item-Read')
+        tcr.COMMENT    = valueOf('#zsd_tecomments span')
+        tcr.OUT_PRO    = valueOf('#zsd_sourcecodelink span')
+        tcr.RELEASE    = valueOf('#zsd_releasetype span')
+        tcr.START      = valueOf('#zsd_testartdate span')
+        tcr.STOP       = valueOf('#zsd_teenddate span')
+        tcr.PE_START   = valueOf('#zsd_pestartdate span')
+        tcr.PE_STOP    = valueOf('#zsd_peenddate span')
+        tcr.TCR        = valueOf('#header_zsd_tcrnumber span')
+        tcr.STAGE      = valueOf('#zsd_stage span') + '(' + valueOf('#zsd_stagestatus span') + ')'
+
+        tcr.CATEGORY = valueOf('#zsd_category span')
+        switch (tcr.CATEGORY) {
+            case 'BI':
+                tcr.PRODUCT = valueOf('#zsd_packagetype span')
+                tcr.TESTER = valueOf('#zsd_tester span')
+                break
+            case 'KGD':
+                tcr.FLOW = valueOf('#zsd_waferteststep span')
+                tcr.PRODUCT = valueOf('#zsd_productline span')
+                tcr.TESTER = valueOf('#zsd_testerplatform span') + '(' + valueOf('#zsd_tester span') + ')'
+                break
+            default:
+                tcr.FLOW = valueOf('#zsd_testtimetestflow span')
+                tcr.PRODUCT = valueOf('#zsd_productdescription span')
+                tcr.NUM_OF_DIE = valueOf('#zsd_numberofdie :first span')
+                tcr.PDT = valueOf('#zsd_pdtproject span.ms-crm-Lookup-Item-Read')
+                tcr.TESTER = valueOf('#zsd_hardware1 span.ms-crm-Lookup-Item-Read')
+                break
+        }
 
         return tcr
     }, qNm).then(function(tcrJson) {
@@ -143,40 +131,30 @@ function getBrief(qNm) {
 
         // TCR info per PE
         client.sadd("PE", tcrJson.PE, redis.print);
-        var desc = [tcrJson.KBM, tcrJson.STATUS, tcrJson.STAGE, tcrJson.AGILE.trim()||'[AGILE]', tcrJson.PDT.trim()||'[PDT]', tcrJson.PKG.trim()||'[PKG]', tcrJson.TITLE, tcrJson.TE || 'XMAN']
-	client.hset(tcrJson.PE, tcrJson.TCR, desc.join(' | '), redis.print);
-	//client.hset(tcrJson.QUEUE, tcrJson.TCR, desc.join(' | '), redis.print);
+        var desc = [tcrJson.CATEGORY, tcrJson.STAGE, tcrJson.AGILE.trim() || '[AGILE]', tcrJson.PDT.trim() || '[PDT]', tcrJson.PRODUCT.trim() || '[PKG]', tcrJson.MEMORY, tcrJson.NUM_OF_DIE, tcrJson.TE || 'XMAN']
+        client.hset(tcrJson.PE, tcrJson.TCR, desc.join(' | '), redis.print);
 
         // TCR info per TE
         client.sadd("TE", tcrJson.TE || 'XMAN', redis.print);
-        desc = [tcrJson.KBM, tcrJson.STATUS, tcrJson.STAGE, tcrJson.START || '[START]', tcrJson.END || '[END]', tcrJson.COMMIT || '[COMMIT]', tcrJson.PKG.trim() || '[PKG]', tcrJson.TITLE, tcrJson.PE, tcrJson.OUT_PRO]
-        client.hset(tcrJson.TE , tcrJson.TCR, desc.join(' | '), redis.print);
-        client.hset(tcrJson.QUEUE , tcrJson.TCR, desc.join(' | '), redis.print);
-	if ( tcrJson.TE && (tcrJson.QUEUE !== '<'+tcrJson.TE+'>') ) {
-		console.log( 'Removed ' + tcrJson.TCR + ' from ' + '<'+tcrJson.TE+'>' )
-		client.hdel( '<'+tcrJson.TE+'>', tcrJson.TCR, function(e2,v2){})
-	}
+        desc = [tcrJson.CATEGORY, tcrJson.STAGE, tcrJson.START || '[START]', tcrJson.END || '[END]', tcrJson.COMMIT || '[COMMIT]', tcrJson.PRODUCT.trim() || '[PKG]', tcrJson.MEMORY, tcrJson.NUM_OF_DIE, tcrJson.PE, tcrJson.OUT_PRO]
+        client.hset(tcrJson.TE, tcrJson.TCR, desc.join(' | '), redis.print);
+        client.hset(tcrJson.QUEUE, tcrJson.TCR, desc.join(' | '), redis.print);
+        if (tcrJson.TE && (tcrJson.QUEUE !== '<' + tcrJson.TE + '>')) {
+            console.log('Removed ' + tcrJson.TCR + ' from ' + '<' + tcrJson.TE + '>')
+            client.hdel('<' + tcrJson.TE + '>', tcrJson.TCR, function(e2, v2) {})
+        }
 
-        // save Queue names
-	client.sadd( "TCR_QUEUE", tcrJson.QUEUE )
+        // group info
+        client.sadd("TCR_QUEUE"   , tcrJson.QUEUE)
+        client.sadd('AGILE'       , tcrJson.AGILE)
+        client.sadd('PDT'         , tcrJson.PDT)
+        client.sadd('MEMORY'      , tcrJson.MEMORY)
+        client.sadd('TESTER'      , tcrJson.TESTER)
+        client.sadd(tcrJson.STAGE , tcrJson.TCR)
+				client.sadd('WAFER-'+tcrJson.WAFER, tcrJson.TCR)
 
         // save TCR mod time
-	client.hset( "TCR_MODT", tcrJson.TCR, modT )
-
-	// Agile/PDT info
-	client.sadd( 'AGILE', tcrJson.AGILE.trim() )
-	client.sadd( 'PDT', tcrJson.PDT.trim() )
-
-
-	switch(tcrJson.STAGE){
-		case 'Development In Progress':
-		case 'Program Checkout':
-		case 'Production Checkout':
-			client.sadd( tcrJson.STAGE, tcrJson.TCR )
-			break
-		default:
-			break
-	}
+        client.hset("TCR_MODT", tcrJson.TCR, modT)
 
         client.quit();
     })

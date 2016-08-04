@@ -5,8 +5,8 @@ process.on('SIGINT', () => {
   process.kill()
 });
 
-const MAX_WORKERS = 10
-const UPDATE_PERIOD = 300*1000
+const MAX_WORKERS = 5
+const UPDATE_PERIOD = 180*1000
 const DO_JOBS_PERIOD = 3*1000
 
 var ONJOB_WORKERS = 0
