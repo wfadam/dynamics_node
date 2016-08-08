@@ -4,7 +4,6 @@ var phantom = require('phantom'),
     url = '',
     sitepage = null,
     phInstance = null,
-    math = require('mathjs'),
     modT, redis = require("redis"),
     client = redis.createClient(6379, 'mtte');
 
@@ -103,6 +102,7 @@ function getBrief(qNm) {
                 tcr.FLOW = valueOf('#zsd_waferteststep span')
                 tcr.PRODUCT = valueOf('#zsd_productline span')
                 tcr.TESTER = valueOf('#zsd_testerplatform span') + '(' + valueOf('#zsd_tester span') + ')'
+								tcr.PE2  = valueOf('#zsd_assignedsdsste span.ms-crm-Lookup-Item-Read') // local PE in charge of checkout
                 break
             default:
                 tcr.FLOW = valueOf('#zsd_testtimetestflow span')
@@ -122,6 +122,7 @@ function getBrief(qNm) {
         tcrJson.URL = url
         console.log(JSON.stringify(tcrJson, null, 2))
 
+        // save TCR body
         var fdArr = []
         for (var key in tcrJson) {
             fdArr.push(key)
@@ -145,13 +146,17 @@ function getBrief(qNm) {
         }
 
         // group info
-        client.sadd("TCR_QUEUE"   , tcrJson.QUEUE)
-        client.sadd('AGILE'       , tcrJson.AGILE)
-        client.sadd('PDT'         , tcrJson.PDT)
-        client.sadd('MEMORY'      , tcrJson.MEMORY)
-        client.sadd('TESTER'      , tcrJson.TESTER)
-        client.sadd(tcrJson.STAGE , tcrJson.TCR)
-				client.sadd('WAFER-'+tcrJson.WAFER, tcrJson.TCR)
+        client.sadd ( 'AGILE:' +tcrJson.AGILE  , tcrJson.TCR ) 
+        client.sadd ( 'PDT:'   +tcrJson.PDT    , tcrJson.TCR ) 
+        client.sadd ( 'MEMORY:'+tcrJson.MEMORY , tcrJson.TCR ) 
+        client.sadd ( 'TESTER:'+tcrJson.TESTER , tcrJson.TCR ) 
+        client.sadd ( 'STAGE:' +tcrJson.STAGE  , tcrJson.TCR ) 
+        client.sadd ( 'WAFER:' +tcrJson.WAFER  , tcrJson.TCR ) 
+
+        client.sadd ( 'AGILE'  , tcrJson.AGILE   )
+        client.sadd ( 'PDT'    , tcrJson.PDT     )
+        client.sadd ( 'MEMORY' , tcrJson.MEMORY  )
+        client.sadd ( 'TESTER' , tcrJson.TESTER  )
 
         // save TCR mod time
         client.hset("TCR_MODT", tcrJson.TCR, modT)
@@ -160,3 +165,4 @@ function getBrief(qNm) {
     })
 
 }
+
