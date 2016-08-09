@@ -63,6 +63,7 @@ function getBrief(qNm) {
         function valueOf(id) {
             switch (id) {
                 case '#zsd_detailscomments span':
+                case '#zsd_tecomments span':
                     return doc.find(id).html() || ''
                 default:
                     return doc.find(id).text() || ''
