@@ -75,18 +75,18 @@ function startPrcess(cmdL, cnt) {
 		return
 	}
 	for ( var wkn =0; wkn<cnt; wkn++ ) {
-            ++ONJOB_WORKERS
+		++ONJOB_WORKERS
 
-            exec(cmdL, function(error, stdout, stderr) {
-                --ONJOB_WORKERS
-		if (stderr){
-			console.log('stderr: ', stderr);
-		}
-                console.log( stdout );
-                if (error) {
-			console.log('exec error: ', error);
-                }
-            });
+		exec(cmdL, function(error, stdout, stderr) {
+				--ONJOB_WORKERS
+				if (stderr){
+					console.log('stderr: ', stderr);
+				}
+				console.log( stdout );
+				if (error) {
+					console.log('exec error: ', error);
+				}
+			});
 	}
 
 	console.log('Dispatched ' + cnt + ' worker(s) : ' + cmdL )
