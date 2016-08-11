@@ -56,6 +56,7 @@ return nightmare
 							tcr.FLOW = valueOf('#zsd_waferteststep span')
 								tcr.PRODUCT = valueOf('#zsd_productline span')
 								tcr.TESTER = valueOf('#zsd_testerplatform span') + '(' + valueOf('#zsd_tester span') + ')'
+								tcr.PE2  = valueOf('#zsd_assignedsdsste span.ms-crm-Lookup-Item-Read') // local PE in charge of checkout
 								break
 					default:
 								tcr.FLOW = valueOf('#zsd_testtimetestflow span')

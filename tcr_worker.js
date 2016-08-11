@@ -50,6 +50,7 @@ client.spop('outQueue', function(err, value) {
         })
     .catch(function(e){
         console.log(e)
+				client.sadd('outQueue', value )
         client.quit()
         })
 })
