@@ -1,10 +1,10 @@
 var Nightmare = require('nightmare'),
     nightmare = new Nightmare({
-									waitTimeout: 60000 // in ms
-								});
+					waitTimeout: 45000 // in ms
+				});
 
 module.exports = {
-toJson: toJson
+	toJson: toJson
 }
 
 function toJson( url ) {
@@ -73,7 +73,7 @@ return nightmare
 	.then(function(result) {
 			return result
 			}).catch(function(e){
-				console.log(e)
+					throw new Error(e)
 				})
 }
 
