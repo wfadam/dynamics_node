@@ -45,6 +45,7 @@ return nightmare
 				tcr.PE_STOP    = valueOf('#zsd_peenddate span')
 				tcr.TCR        = valueOf('#header_zsd_tcrnumber span')
 				tcr.STAGE      = valueOf('#zsd_stage span') + '(' + valueOf('#zsd_stagestatus span') + ')'
+				tcr.REASON     = valueOf('#zsd_deferreason span')
 
 				tcr.CATEGORY = valueOf('#zsd_category span')
 				switch (tcr.CATEGORY) {
