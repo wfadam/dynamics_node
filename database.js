@@ -14,22 +14,23 @@ function save(client, tcrJson){
 
 		// TCR info per PE
 		client.sadd("PE", tcrJson.PE);
-		var desc = [tcrJson.CATEGORY, tcrJson.STAGE, tcrJson.AGILE.trim() || '[AGILE]', tcrJson.PDT.trim() || '[PDT]', tcrJson.PRODUCT.trim() || '[PKG]', tcrJson.MEMORY, tcrJson.NUM_OF_DIE, tcrJson.TE || 'XMAN']
-		//client.hset(tcrJson.PE, tcrJson.TCR, desc.join(' | '));
 
 		// TCR info per TE
-		client.sadd("TE", tcrJson.TE || 'XMAN');
-		desc = [tcrJson.CATEGORY, tcrJson.STAGE, tcrJson.START || '[START]', tcrJson.END || '[END]', tcrJson.COMMIT || '[COMMIT]', tcrJson.PRODUCT.trim() || '[PKG]', tcrJson.MEMORY, tcrJson.NUM_OF_DIE, tcrJson.PE, tcrJson.OUT_PRO]
-		//client.hset(tcrJson.TE, tcrJson.TCR, desc.join(' | '));
-		client.hset(tcrJson.QUEUE, tcrJson.TCR, desc.join(' | '));
-		if (tcrJson.TE && (tcrJson.QUEUE !== '<' + tcrJson.TE + '>')) {
-			console.log('Removed ' + tcrJson.TCR + ' from ' + '<' + tcrJson.TE + '>')
-				client.hdel('<' + tcrJson.TE + '>', tcrJson.TCR, function() {})
+		client.sadd("TE", tcrJson.TE);
+
+		if ( tcrJson.STAGE.indexOf('(Cancel)') >= 0 ) {
+				client.hdel('<' + tcrJson.TE + '>', tcrJson.TCR)
+		} else {
+				var desc = [tcrJson.CATEGORY, tcrJson.PE, tcrJson.PRODUCT.trim() || '[PKG]', tcrJson.MEMORY, tcrJson.NUM_OF_DIE, tcrJson.START || '[START]', tcrJson.COMMIT || '[COMMIT]', tcrJson.STAGE]
+				client.hset(tcrJson.QUEUE, tcrJson.TCR, desc.join(' | '));
+				if (tcrJson.TE && (tcrJson.QUEUE !== '<' + tcrJson.TE + '>')) {
+					client.hdel('<' + tcrJson.TE + '>', tcrJson.TCR)
+				}
 		}
 
 		// group info
-		client.sadd ( 'MEMORY:'+tcrJson.MEMORY , tcrJson.TCR    ) 
-		client.sadd ( 'STAGE:' +tcrJson.STAGE  , tcrJson.TCR    ) 
+		client.sadd ( 'MEMORY:'+tcrJson.MEMORY , tcrJson.TCR ) 
+		client.sadd ( 'STAGE:' +tcrJson.STAGE  , tcrJson.TCR ) 
 		if ( tcrJson.AGILE ) {
 		  client.sadd ( 'AGILE:' +tcrJson.AGILE  , tcrJson.TCR ) 
 		}
@@ -55,7 +56,7 @@ function save(client, tcrJson){
           if ( baseProName.match(/^[0-9a-zA-Z]+$/) ) {
             client.hset ( 'PRO:'+tcrJson.CATEGORY+':'+baseProName, tcrJson.TCR, tcrJson.OUT_PRO  )
           }
-        break;
+					break;
         case 'BI':
           var baseProName = tcrJson.PROGRAM.substr(0,6).trim()
           client.hset ( 'PRO:'+tcrJson.CATEGORY+':'+baseProName, tcrJson.TCR, tcrJson.OUT_PRO  )
@@ -67,11 +68,11 @@ function save(client, tcrJson){
 
 		// link TE and PE
 		if ( tcrJson.TE && tcrJson.PE ) {
-			client.hset ( tcrJson.TE, tcrJson.TCR, tcrJson.PE, function(){}  )
-			client.hset ( tcrJson.PE, tcrJson.TCR, tcrJson.TE, function(){}  )
+			client.hset ( tcrJson.TE, tcrJson.TCR, tcrJson.PE )
+			client.hset ( tcrJson.PE, tcrJson.TCR, tcrJson.TE )
       if ( tcrJson.PE2 ) {
-        client.hset ( tcrJson.TE, tcrJson.TCR, tcrJson.PE2, function(){}  )
-        client.hset ( tcrJson.PE2, tcrJson.TCR, tcrJson.TE, function(){}  )
+        client.hset ( tcrJson.TE, tcrJson.TCR, tcrJson.PE2 )
+        client.hset ( tcrJson.PE2, tcrJson.TCR, tcrJson.TE )
       }
 		}
 }
