@@ -2,6 +2,16 @@ module.exports = {
 save: save
 }
 
+//var head = '^[tw]'
+//	product = '[0-9a-z]{6}',
+//	flow = '(af|fh|sh)',
+//	rev = '[0-9a-z]{2}',
+//	subrev = '[0-9a-z]{2}(en[0-9a-z])?',
+//	hardware = '[0-9]{3}[a-z]',
+//	regPat = new RegExp(head + product + flow + rev + subrev + '_' + hardware),
+//	oldRegpat = new RegExp(head + product + flow + rev + '_' + subrev);
+
+
 function save(client, tcrJson){
 
 		// save TCR body
@@ -44,22 +54,26 @@ function save(client, tcrJson){
 			client.sadd ( 'WAFER:' +tcrJson.WAFER  , tcrJson.TCR    ) 
 		}
 
-		// link program name to pops
-		if ( tcrJson.OUT_PRO && tcrJson.PROGRAM ) {
+		if ( tcrJson.PROGRAM ) {
+			const smallPro = tcrJson.PROGRAM.trim().toLowerCase()
 			switch( tcrJson.CATEGORY ) {
         case 'MT':
-          var baseProName = tcrJson.PROGRAM.substr(0,7).toLowerCase()
-          client.hset ( 'PRO:'+tcrJson.CATEGORY+':'+baseProName, tcrJson.TCR, tcrJson.OUT_PRO  )
+          var baseProName = smallPro.substr(0,7)
+					var key = 'PRO:'+tcrJson.CATEGORY+':'+baseProName
+					var field = smallPro+':'+tcrJson.TCR
+          client.hset ( key, field, tcrJson.OUT_PRO||''  )
           break;
         case 'KGD':
           var baseProName = tcrJson.PROGRAM.substr(0,10).trim()
           if ( baseProName.match(/^[0-9a-zA-Z]+$/) ) {
-            client.hset ( 'PRO:'+tcrJson.CATEGORY+':'+baseProName, tcrJson.TCR, tcrJson.OUT_PRO  )
+						var key = 'PRO:'+tcrJson.CATEGORY+':'+baseProName
+            client.hset ( key, tcrJson.TCR, tcrJson.OUT_PRO||''  )
           }
 					break;
         case 'BI':
           var baseProName = tcrJson.PROGRAM.substr(0,6).trim()
-          client.hset ( 'PRO:'+tcrJson.CATEGORY+':'+baseProName, tcrJson.TCR, tcrJson.OUT_PRO  )
+					var key = 'PRO:'+tcrJson.CATEGORY+':'+baseProName
+          client.hset ( key, tcrJson.TCR, tcrJson.OUT_PRO||''  )
           break;
         default:
           break;
