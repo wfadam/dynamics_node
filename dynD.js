@@ -5,7 +5,7 @@ process.on('SIGINT', () => {
   process.kill()
 });
 
-const MAX_WORKERS = 2
+const MAX_WORKERS = 3
 const UPDATE_PERIOD = 180*1000
 const DO_JOBS_PERIOD = 3*1000
 
@@ -59,7 +59,7 @@ setInterval( function(){
 		qLen = parseInt( value )
 		if ( ONJOB_WORKERS > 0 ) {
 			console.log( 'Queued jobs : ' + qLen + ' , Ongoing jobs : ' + ONJOB_WORKERS )
-		} 
+		}
 
 		var needWorkers  = math.min(qLen, MAX_WORKERS)
 		var idleWorkers  = MAX_WORKERS-ONJOB_WORKERS
@@ -91,4 +91,3 @@ function startPrcess(cmdL, cnt) {
 
 	console.log('Dispatched ' + cnt + ' worker(s) : ' + cmdL )
 }
-
