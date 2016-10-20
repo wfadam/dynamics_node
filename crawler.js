@@ -11,7 +11,7 @@ function toJson(url) {
     return nightmare
         //.viewport(1600,1200)
         .goto(url)
-        .wait(4000)
+        .wait(5000)
         //.screenshot('abc.png')
         .evaluate(function() {
             $('#contentIFrame0').contents().find('.ms-crm-div-NotVisible').remove();
@@ -28,7 +28,7 @@ function toJson(url) {
             tcr.TCR = find('TCR Number_label').textContent.trim();
             tcr.STAGE = find('Stage_label').textContent.trim();
             tcr.TE = find('header_process_zsd_assignedte_lookupValue').title.trim();
-            tcr.PE = find('header_ownerid_lookupValue').textContent.trim();
+            tcr.PE = find('createdby_lookupValue').title.trim();
             tcr.START = find('zsd_testartdate').textContent.trim();
             tcr.STOP = find('zsd_teenddate').textContent.trim();
             tcr.PE_START = find('zsd_pestartdate').textContent.trim();
