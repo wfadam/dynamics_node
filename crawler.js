@@ -11,7 +11,7 @@ function toJson(url) {
     return nightmare
         //.viewport(1600,1200)
         .goto(url)
-        .wait(5000)
+        .wait(8000)
         //.screenshot('abc.png')
         .evaluate(function() {
             $('#contentIFrame0').contents().find('.ms-crm-div-NotVisible').remove();
@@ -40,7 +40,7 @@ function toJson(url) {
                 tcr.PRODUCT = '';
                 tcr.PE2 = find('zsd_assignedsdsste_lookupValue').title.trim(); // local PE in charge of checkout
                 return tcr;
-            } 
+            }
 
 	    if (tcr.CATEGORY === "MT") {
 		    tcr.PRODUCT = find('Product Desc (Pkg,Prod,Perf,IO Ch,MLC/SLC)_label').title.trim();
@@ -56,7 +56,7 @@ function toJson(url) {
             tcr.MEMORY = find('zsd_memoryconfiguration_lookupValue').title.trim();
             tcr.AGILE = find('zsd_agileproductline_lookupValue').textContent.trim();
             tcr.COMMIT = find('Revised Program Commit Date_label').textContent.trim();
-            tcr.REQUEST = find('Details/Comments_label').title.trim();
+            tcr.REQUEST = find('Details/Comments_label').innerHTML.trim();
             tcr.COMMENT = find('Comments_label').title.trim();
             tcr.OUT_PRO = find('header_process_zsd_sourcecodelink').textContent.trim();
             tcr.RELEASE = find('Release Type_label').textContent.trim();
