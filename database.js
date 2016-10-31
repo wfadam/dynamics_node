@@ -28,7 +28,7 @@ function save(client, tcrJson){
 		// TCR info per TE
 		client.sadd("TE", tcrJson.TE);
 
-		if ( tcrJson.STAGE.indexOf('(Cancel)') >= 0 ) {
+		if (tcrJson.STAGE.includes('Cancel') || tcrJson.STAGE.includes('Closed')) {
 				client.hdel('<' + tcrJson.TE + '>', tcrJson.TCR)
 		} else {
 				var desc = [tcrJson.CATEGORY, tcrJson.PE, tcrJson.PRODUCT.trim() || '[PKG]', tcrJson.MEMORY, tcrJson.NUM_OF_DIE, tcrJson.START || '[START]', tcrJson.COMMIT || '[COMMIT]', tcrJson.STAGE]
@@ -39,19 +39,19 @@ function save(client, tcrJson){
 		}
 
 		// group info
-		client.sadd ( 'MEMORY:'+tcrJson.MEMORY , tcrJson.TCR ) 
-		client.sadd ( 'STAGE:' +tcrJson.STAGE  , tcrJson.TCR ) 
+		client.sadd ( 'MEMORY:'+tcrJson.MEMORY , tcrJson.TCR )
+		client.sadd ( 'STAGE:' +tcrJson.STAGE  , tcrJson.TCR )
 		if ( tcrJson.AGILE ) {
-		  client.sadd ( 'AGILE:' +tcrJson.AGILE  , tcrJson.TCR ) 
+		  client.sadd ( 'AGILE:' +tcrJson.AGILE  , tcrJson.TCR )
 		}
 		if ( tcrJson.TESTER ) {
-			client.sadd ( 'TESTER:'+tcrJson.TESTER , tcrJson.TCR    ) 
+			client.sadd ( 'TESTER:'+tcrJson.TESTER , tcrJson.TCR    )
 		}
 		if ( tcrJson.PDT ) {
-			client.sadd ( 'PDT:'   +tcrJson.PDT , tcrJson.TCR ) 
+			client.sadd ( 'PDT:'   +tcrJson.PDT , tcrJson.TCR )
 		}
 		if (tcrJson.WAFER ) {
-			client.sadd ( 'WAFER:' +tcrJson.WAFER  , tcrJson.TCR    ) 
+			client.sadd ( 'WAFER:' +tcrJson.WAFER  , tcrJson.TCR    )
 		}
 
 		if ( tcrJson.PROGRAM ) {

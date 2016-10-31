@@ -26,7 +26,7 @@ function toJson(url) {
             tcr.TESTER = '';
 
             tcr.TCR = find('TCR Number_label').textContent.trim();
-            tcr.STAGE = find('Stage_label').textContent.trim();
+            tcr.STAGE = find('Stage_label').textContent.trim() + '(' + find('Stage Status_label').textContent.trim() + ')';
             tcr.TE = find('header_process_zsd_assignedte_lookupValue').title.trim();
             tcr.PE = find('createdby_lookupValue').title.trim();
             tcr.START = find('zsd_testartdate').textContent.trim();
@@ -42,15 +42,15 @@ function toJson(url) {
                 return tcr;
             }
 
-	    if (tcr.CATEGORY === "MT") {
-		    tcr.PRODUCT = find('Product Desc (Pkg,Prod,Perf,IO Ch,MLC/SLC)_label').title.trim();
-		    tcr.TESTER = find('zsd_hardware1_lookupValue').title.trim();
-	    } else if (tcr.CATEGORY === "BI") {
-		    tcr.PRODUCT = find('Request Description_label').title.trim();
-		    tcr.TESTER = find('Tester/Platform_label').textContent.trim();
-	    }
+            if (tcr.CATEGORY === "MT") {
+                tcr.PRODUCT = find('Product Desc (Pkg,Prod,Perf,IO Ch,MLC/SLC)_label').title.trim();
+                tcr.TESTER = find('zsd_hardware1_lookupValue').title.trim();
+            } else if (tcr.CATEGORY === "BI") {
+                tcr.PRODUCT = find('Request Description_label').title.trim();
+                tcr.TESTER = find('Tester/Platform_label').textContent.trim();
+            }
 
-	    tcr.NUM_OF_DIE = find('Number of Die/CE_label').textContent.trim();
+            tcr.NUM_OF_DIE = find('Number of Die/CE_label').textContent.trim();
             tcr.PDT = find('zsd_pdtproject_lookupValue').title.trim();
             tcr.PROGRAM = find('Test Program Name_label').textContent.trim();
             tcr.MEMORY = find('zsd_memoryconfiguration_lookupValue').title.trim();
