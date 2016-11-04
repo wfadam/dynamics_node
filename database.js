@@ -104,25 +104,33 @@ function groupProgram(client, json) {
     if (json.PROGRAM) {
         const baseProName = json.PROGRAM.substr(0, 7).toLowerCase();
         const key = `PRO:${json.CATEGORY}:${baseProName}`;
-
-        const oneDayMS = 1000 * 60 * 60 * 24;
-        let beginMS = Date.parse(json.START);
-        let endMS = Date.parse(json.STOP);
-        let leadTime = 0;
-        if (isNaN(endMS) || isNaN(beginMS)) {
-            leadTime = '0';
+        if (false) {
+            client.del(key);
+            console.log(`deleted ${key}`);
         } else {
-            leadTime = Math.ceil((endMS - beginMS) / oneDayMS) + 1;
-        }
 
-        let endDay = json.STOP
-        let score = Date.parse(endDay);
-        if (isNaN(score)) {
-            score = 0;
-            endDay = '';
+            let days = daysBetween(json.START, json.STOP);
+
+            let endDay = json.STOP
+            let score = Date.parse(endDay);
+            if (isNaN(score)) {
+                score = 0;
+                endDay = '';
+            }
+            const value = `${json.PROGRAM.toLowerCase()}:${json.TCR}:${json.PE}:${json.TE}:${days} days until ${endDay}`;
+            console.log(value);
+            client.zadd(key, score, value);
         }
-        const value = `${json.PROGRAM.toLowerCase()}:${json.TCR}:${json.PE}:${json.TE}:${leadTime} days until ${endDay}`;
-        console.log(value);
-        client.zadd(key, score, value);
+    }
+}
+
+function daysBetween(stDay, spDay) {
+    let beginMS = Date.parse(stDay);
+    let endMS = Date.parse(spDay);
+    if (isNaN(endMS) || isNaN(beginMS)) {
+        return 0;
+    } else {
+        const oneDayMS = 1000 * 60 * 60 * 24;
+        return Math.ceil(Math.abs(endMS - beginMS) / oneDayMS) + 1;
     }
 }
