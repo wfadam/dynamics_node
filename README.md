@@ -1,10 +1,10 @@
-# How to crawl the web page data
+# start redis
 ```shell
-node dynD.js
+setsid redis-server >> redis.log
 ```
 
 
-# How to start the web api service
+# start node app with pm2
 ```shell
-node dynAPI.js
+pm2 start dynAPI.js assignAttach.js scheduler.js latest.js 
 ```
